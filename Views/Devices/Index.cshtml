@@ -1,0 +1,191 @@
+@model IEnumerable<DACS.Models.Device>
+@using DACS.Models
+
+@{
+    ViewData["Title"] = "Quản lý thiết bị";
+}
+
+<!-- DataTables & SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Quản lý thiết bị GPS</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Danh sách thiết bị</li>
+                </ol>
+            </nav>
+        </div>
+        <a asp-action="Create" class="btn btn-primary shadow-sm px-4">
+            <i class="fa-solid fa-plus me-2"></i> Thêm mới
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table id="devicesTable" class="table table-hover align-middle" style="width:100%">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-3 py-3 text-uppercase small fw-bold">S/N Thiết bị</th>
+                            <th class="py-3 text-uppercase small fw-bold">Xe đang lắp</th>
+                            <th class="py-3 text-uppercase small fw-bold">Trạng thái</th>
+                            <th class="text-end pe-3 py-3 text-uppercase small fw-bold">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model) {
+                            var isOnline = item.Vehicle?.LastUpdated > DateTime.UtcNow.AddMinutes(-5);
+                            <tr>
+                                <td class="ps-3 fw-bold text-primary">@item.SerialNumber</td>
+                                <td>
+                                    @if (item.Vehicle != null) {
+                                        <div class="fw-semibold">@item.Vehicle.Name</div>
+                                        <div class="text-muted extra-small">@item.Vehicle.LicensePlate</div>
+                                    } else {
+                                        <span class="text-muted small fs-italic">Chưa gán xe</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if(isOnline) {
+                                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                                            <i class="fa-solid fa-tower-broadcast me-1"></i> Trực tuyến
+                                        </span>
+                                    } else {
+                                        <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3 py-2">
+                                            <i class="fa-solid fa-power-off me-1"></i> Ngoại tuyến
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="btn-group shadow-sm border rounded">
+                                        <button type="button" class="btn btn-sm btn-white text-dark border-end" 
+                                                onclick="openAssignModal(@item.Id, '@item.SerialNumber')" 
+                                                data-bs-toggle="tooltip" title="Gán vào xe">
+                                            <i class="fa-solid fa-link"></i>
+                                        </button>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-white text-primary border-end" 
+                                           data-bs-toggle="tooltip" title="Sửa">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-white text-danger" 
+                                                onclick="confirmDelete(@item.Id)" 
+                                                data-bs-toggle="tooltip" title="Xóa">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Vehicle Modal -->
+<div class="modal fade shadow" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-link me-2"></i> Gán thiết bị vào xe</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Assign" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body py-4 text-center">
+                    <input type="hidden" id="modalDeviceId" name="deviceId" />
+                    <p class="mb-4">Bạn đang gán xe cho thiết bị: <strong id="modalDeviceSn" class="text-primary px-2 py-1 bg-light rounded border"></strong></p>
+                    <div class="form-group text-start px-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Chọn xe chưa có thiết bị:</label>
+                        <select name="vehicleId" class="form-select shadow-xs" required>
+                            <option value="">-- Chọn xe --</option>
+                            @foreach (var v in (List<Vehicle>)ViewBag.AvailableVehicles)
+                            {
+                                <option value="@v.Id">@v.Name (@v.LicensePlate)</option>
+                            }
+                        </select>
+                        <div class="form-text mt-2 extra-small">Chỉ hiển thị những xe hiện chưa lắp bất kỳ thiết bị nào.</div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm">Xác nhận gán</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-white { background: white; border: none; }
+    .btn-white:hover { background: #f8f9fa; }
+    .extra-small { font-size: 0.75rem; }
+</style>
+
+@section Scripts {
+    <!-- DataTables JS & SweetAlert2 -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#devicesTable').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
+                columnDefs: [{ orderable: false, targets: 3 }],
+                order: [[0, 'asc']]
+            });
+
+            // Initialize Tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+
+        function openAssignModal(id, sn) {
+            document.getElementById('modalDeviceId').value = id;
+            document.getElementById('modalDeviceSn').innerText = sn;
+            new bootstrap.Modal(document.getElementById('assignModal')).show();
+        }
+
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Xác nhận xóa thiết bị?',
+                text: "Toàn bộ dữ liệu hành trình và liên kết với xe sẽ bị xóa sạch!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đồng ý xóa',
+                cancelButtonText: 'Hủy bỏ',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Devices/Delete/' + id,
+                        type: 'POST',
+                        success: function (res) {
+                            Swal.fire({
+                                title: 'Đã xóa!',
+                                text: 'Thiết bị đã được gỡ khỏi hệ thống.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        },
+                        error: function () {
+                            Swal.fire('Lỗi!', 'Không thể thực hiện yêu cầu xóa.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,74 @@
+@model DACS.Models.Device
+
+@{
+    ViewData["Title"] = "Thêm thiết bị mới";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold text-dark">Thêm thiết bị mới</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Danh sách thiết bị</a></li>
+                <li class="breadcrumb-item active">Thêm mới</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-microchip me-2 text-primary"></i> Thông tin thiết bị</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="SerialNumber" class="form-label fw-bold small text-muted text-uppercase">Serial Number (S/N)</label>
+                            <input asp-for="SerialNumber" class="form-control" placeholder="Nhập số serial thiết bị..." required />
+                            <span asp-validation-for="SerialNumber" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Status" class="form-label fw-bold small text-muted text-uppercase">Trạng thái ban đầu</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="New">Mới</option>
+                                <option value="In Stock">Trong kho</option>
+                                <option value="Repairing">Đang sửa chữa</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="fa-solid fa-save me-2"></i> Lưu thiết bị
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                                Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-7">
+            <div class="card border-0 bg-light-subtle shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-center flex-column text-center p-5">
+                    <div class="mb-4 text-primary opacity-25">
+                        <i class="fa-solid fa-satellite-dish" style="font-size: 8rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-3">Thông tin bổ sung</h4>
+                    <p class="text-muted mb-0">Thiết bị sau khi tạo có thể được gán vào xe tại trang danh sách. Sau khi gán, dữ liệu GPS từ xe sẽ được liên kết trực tiếp với thiết bị này thông qua Serial Number.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

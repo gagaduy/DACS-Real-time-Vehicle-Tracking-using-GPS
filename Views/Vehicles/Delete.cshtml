@@ -1,0 +1,38 @@
+@model DACS.Models.Vehicle
+
+@{
+    ViewData["Title"] = "Xóa xe";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm border-top border-danger border-4">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-exclamation-triangle-fill text-danger display-4"></i>
+                    </div>
+                    <h4 class="mb-3">Xác nhận xóa xe?</h4>
+                    <p class="text-muted mb-4">Bạn có chắc chắn muốn xóa xe <strong>@Model.Name</strong> (Biển số: @Model.LicensePlate) khỏi hệ thống? Hành động này không thể hoàn tác.</p>
+                    
+                    <div class="bg-light p-3 rounded mb-4 text-start">
+                        <div class="row g-2 small">
+                            <div class="col-4 text-muted">Dòng xe:</div>
+                            <div class="col-8 fw-bold">@Model.Model</div>
+                            <div class="col-4 text-muted">Trạng thái:</div>
+                            <div class="col-8">@Model.Status</div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Delete">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger py-2">Xóa vĩnh viễn</button>
+                            <a asp-action="Index" class="btn btn-light py-2">Quay lại danh sách</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

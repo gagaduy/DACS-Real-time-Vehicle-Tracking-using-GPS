@@ -1,0 +1,5 @@
+sudo docker start my_sql_server: để bật sql server
+
+username: sa
+password: Aa123456
+

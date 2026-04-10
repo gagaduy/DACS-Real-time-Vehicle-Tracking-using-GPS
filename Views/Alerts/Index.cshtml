@@ -1,0 +1,133 @@
+@model IEnumerable<DACS.Models.Alert>
+@{
+    ViewData["Title"] = "Quản lý Cảnh báo";
+}
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css" />
+
+<div class="container-fluid px-4 py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold text-dark">Quản lý Cảnh báo</h2>
+        <p class="text-muted">Theo dõi và xử lý các vi phạm hoặc sự cố từ phương tiện</p>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i> Danh sách cảnh báo</h5>
+        </div>
+        <div class="card-body">
+            <table id="alertsTable" class="table table-hover dt-responsive nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Phương tiện</th>
+                        <th>Loại</th>
+                        <th>Nội dung</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Timestamp.ToString("HH:mm:ss dd/MM/yyyy")</td>
+                            <td>
+                                <strong>@item.Vehicle?.Name</strong><br />
+                                <small class="text-muted">@item.Vehicle?.LicensePlate</small>
+                            </td>
+                            <td>
+                                @if (item.Type == "OverSpeed")
+                                {
+                                    <span class="badge bg-warning text-dark px-3 py-2"><i class="fa-solid fa-gauge-high me-1"></i> Quá tốc độ</span>
+                                }
+                                else if (item.Type == "GeoFence")
+                                {
+                                    <span class="badge bg-danger px-3 py-2"><i class="fa-solid fa-draw-polygon me-1"></i> Ra khỏi vùng an toàn</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary px-3 py-2">@item.Type</span>
+                                }
+                            </td>
+                            <td class="text-wrap" style="max-width: 300px;">@item.Message</td>
+                            <td>
+                                @if (item.IsProcessed)
+                                {
+                                    <span class="badge bg-success px-3 py-2"><i class="fa-solid fa-check me-1"></i> Đã xử lý</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-danger border border-danger px-3 py-2"><i class="fa-solid fa-clock me-1"></i> Chưa xử lý</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!item.IsProcessed)
+                                {
+                                    <button class="btn btn-sm btn-outline-success btn-mark-processed" data-id="@item.Id">
+                                        <i class="fa-solid fa-check"></i> Đánh dấu đã xử lý
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-light disabled" disabled>
+                                        <i class="fa-solid fa-check-double"></i> Xong
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#alertsTable').DataTable({
+                "order": [[0, "desc"]],
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json"
+                }
+            });
+
+            $('.btn-mark-processed').on('click', function () {
+                var btn = $(this);
+                var id = btn.data('id');
+
+                Swal.fire({
+                    title: 'Xác nhận xử lý?',
+                    text: "Bạn xác nhận đã kiểm tra và xử lý cảnh báo này?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Đúng, đã xử lý!',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post('/Alerts/MarkAsProcessed/' + id, function () {
+                            Swal.fire(
+                                'Thành công!',
+                                'Cảnh báo đã được cập nhật trạng thái.',
+                                'success'
+                            ).then(() => {
+                                location.reload();
+                            });
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

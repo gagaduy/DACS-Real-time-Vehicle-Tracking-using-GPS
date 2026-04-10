@@ -1,0 +1,249 @@
+@model DACS.Models.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+}
+
+<!-- External Libraries CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .small-box { border-radius: 12px; position: relative; display: block; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); color: #fff; padding: 25px; transition: transform 0.2s; border: none; }
+    .small-box:hover { transform: translateY(-5px); }
+    .small-box .inner { position: relative; z-index: 2; }
+    .small-box h3 { font-size: 2.5rem; font-weight: 800; margin: 0 0 5px 0; white-space: nowrap; padding: 0; line-height: 1.2; }
+    .small-box p { font-size: 0.95rem; font-weight: 500; opacity: 0.9; margin-bottom: 0; }
+    .small-box .icon { position: absolute; top: 15px; right: 15px; z-index: 1; font-size: 60px; color: rgba(255,255,255,0.2); transition: all 0.3s; }
+    
+    .bg-info { background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%) !important; }
+    .bg-success { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important; }
+    .bg-warning { background: linear-gradient(135deg, #f39c12 0%, #d35400 100%) !important; }
+    .bg-danger { background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%) !important; }
+    
+    #map { height: 500px; border-radius: 0 0 8px 8px; z-index: 1; }
+    .card-header.with-border { border-bottom: 1px solid #f4f4f4; }
+    .list-group-item { border-left: none; border-right: none; transition: background 0.2s; }
+    .list-group-item:hover { background-color: #f8f9fa; }
+</style>
+
+<div class="container-fluid px-4 py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold text-dark">Bảng điều khiển hệ thống</h2>
+        <p class="text-muted mb-0">Giám sát thời gian thực và thống kê dữ liệu GPS</p>
+    </div>
+
+    <!-- Small Boxes (Stat Cards) -->
+    <div class="row">
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3 id="stat-total-vehicles">@Model.TotalVehicles</h3>
+                    <p>Tổng số phương tiện</p>
+                </div>
+                <div class="icon"><i class="fa-solid fa-car-side"></i></div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3 id="stat-online-vehicles">@Model.OnlineVehicles</h3>
+                    <p>Thiết bị đang trực tuyến</p>
+                </div>
+                <div class="icon"><i class="fa-solid fa-tower-broadcast"></i></div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-warning text-white">
+                <div class="inner">
+                    <h3 id="stat-total-customers">@Model.TotalCustomers</h3>
+                    <p>Khách hàng đăng ký</p>
+                </div>
+                <div class="icon"><i class="fa-solid fa-id-card-clip"></i></div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3 id="stat-total-alerts">@Model.PendingAlerts</h3>
+                    <p>Cảnh báo cần xử lý</p>
+                </div>
+                <div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-1">
+        <!-- Main Map Area -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-earth-asia me-2 text-primary"></i> Vị trí đội xe hiện tại</h5>
+                    <span class="badge bg-light text-primary border border-primary-subtle px-3 py-2">Real-time Online</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Activities -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-history me-2 text-success"></i> Chuyến thuê mới nhất</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach (var rental in Model.LatestRentals)
+                        {
+                            <a href="#" class="list-group-item list-group-item-action py-3">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <h6 class="mb-1 fw-bold text-dark">@rental.Vehicle?.Name</h6>
+                                    <small class="text-primary fw-semibold">@rental.StartDate.ToString("HH:mm dd/MM")</small>
+                                </div>
+                                <div class="d-flex align-items-center mt-1">
+                                    <div class="badge bg-light text-dark border me-2 small">@rental.Vehicle?.LicensePlate</div>
+                                    <div class="small text-muted"><i class="fa-solid fa-user-tag me-1 text-secondary"></i> @rental.Customer?.Name</div>
+                                </div>
+                            </a>
+                        }
+                        @if (!Model.LatestRentals.Any())
+                        {
+                            <div class="text-center py-5">
+                                <i class="fa-solid fa-folder-open text-light mb-2" style="font-size: 3rem;"></i>
+                                <p class="text-muted small">Không có dữ liệu chuyến xe gần đây</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top-0 py-3 text-center">
+                    <button class="btn btn-sm btn-link text-decoration-none fw-bold">Xem tất cả lịch sử thuê <i class="fa-solid fa-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Area -->
+    <div class="row mt-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-chart-line me-2 text-info"></i> Lưu lượng dữ liệu GPS (24h)</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary active">Hourly</button>
+                        <button class="btn btn-outline-secondary">Daily</button>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="gpsChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <script>
+        // 1. Leaflet Map Initialization
+        var map = L.map('map').setView([10.762622, 106.660172], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var markers = {};
+        var carIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/744/744465.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        });
+
+        function updateMarkers(locations) {
+            locations.forEach(updateSingleMarker);
+        }
+
+        function updateSingleMarker(v) {
+            // Bỏ qua tọa độ (0,0) không hợp lệ
+            if (!v.latitude || !v.longitude || (v.latitude === 0 && v.longitude === 0)) return;
+
+            if (markers[v.id]) {
+                // Cập nhật vị trí hiện có
+                markers[v.id].setLatLng([v.latitude, v.longitude]);
+                markers[v.id].getPopup().setContent("<strong>" + v.name + "</strong><br>" + v.licensePlate + "<br>Trạng thái: " + v.status);
+            } else {
+                // Thêm marker mới nếu chưa có
+                markers[v.id] = L.marker([v.latitude, v.longitude], { icon: carIcon })
+                    .addTo(map)
+                    .bindPopup("<strong>" + v.name + "</strong><br>" + v.licensePlate + "<br>Trạng thái: " + v.status);
+            }
+        }
+        
+        // Initial Markers
+        var initialLocations = @Html.Raw(Json.Serialize(Model.VehicleLocations));
+        updateMarkers(initialLocations);
+
+        // 2. Chart.js Initialization
+        var ctx = document.getElementById('gpsChart').getContext('2d');
+        var gpsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
+                datasets: [{
+                    label: 'Tín hiệu nhận (Gps/min)',
+                    data: [45, 59, 80, 81, 56, 55, 40, 65],
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#0d6efd'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { display: false }, beginAtZero: true },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 3. SignalR Real-time Updates
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/dashboardHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("UpdateStats", (stats) => {
+            // Update Stat Cards with animation
+            animateValue("stat-total-vehicles", stats.totalVehicles);
+            animateValue("stat-online-vehicles", stats.onlineVehicles);
+            animateValue("stat-total-customers", stats.totalCustomers);
+            animateValue("stat-total-alerts", stats.pendingAlerts);
+            
+            // Update Map (Delta update for specific vehicle)
+            if (stats.latestUpdate) {
+                updateSingleMarker(stats.latestUpdate);
+            }
+        });
+
+        function animateValue(id, value) {
+            const el = document.getElementById(id);
+            if(el.innerText == value) return;
+            el.classList.add('fade-in');
+            el.innerText = value;
+            setTimeout(() => el.classList.remove('fade-in'), 500);
+        }
+
+        connection.start().then(() => {
+            console.log("SignalR Connected to DashboardHub");
+        }).catch(err => console.error(err.toString()));
+    </script>
+}

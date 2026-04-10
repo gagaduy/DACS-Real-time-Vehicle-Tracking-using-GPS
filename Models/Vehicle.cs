@@ -1,0 +1,20 @@
+namespace DACS.Models;
+
+public class Vehicle
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string LicensePlate { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+
+    public int? DeviceId { get; set; }
+    public Device? Device { get; set; }
+
+    public double? LastLatitude { get; set; }
+    public double? LastLongitude { get; set; }
+    public DateTime? LastUpdated { get; set; }
+
+    public ICollection<Rental> Rentals { get; set; } = new List<Rental>();
+    public ICollection<Alert> Alerts { get; set; } = new List<Alert>();
+}

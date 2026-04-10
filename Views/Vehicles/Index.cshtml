@@ -1,0 +1,128 @@
+@model IEnumerable<DACS.Models.Vehicle>
+
+@{
+    ViewData["Title"] = "Quản lý xe";
+}
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Quản lý phương tiện</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Danh sách xe</li>
+                </ol>
+            </nav>
+        </div>
+        <a asp-action="Create" class="btn btn-primary shadow-sm px-4">
+            <i class="fa-solid fa-plus me-2"></i> Thêm xe mới
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table id="vehiclesTable" class="table table-hover align-middle" style="width:100%">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-3 py-3 text-uppercase small fw-bold">Thông tin xe</th>
+                            <th class="py-3 text-uppercase small fw-bold">Biển số</th>
+                            <th class="py-3 text-uppercase small fw-bold">Dòng sản phẩm</th>
+                            <th class="py-3 text-uppercase small fw-bold">Trạng thái</th>
+                            <th class="text-end pe-3 py-3 text-uppercase small fw-bold">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model) {
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="fw-bold text-primary">@item.Name</div>
+                                    <div class="text-muted extra-small">ID: #@item.Id</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border border-secondary-subtle px-2 py-1 font-monospace">
+                                        @item.LicensePlate
+                                    </span>
+                                </td>
+                                <td>@item.Model</td>
+                                <td>
+                                    @if(item.Status == "Available" || item.Status == "Active" || item.Status == "Sẵn sàng") {
+                                        <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2 border border-success-subtle">
+                                            <i class="fa-solid fa-circle-check me-1"></i> Sẵn sàng
+                                        </span>
+                                    } else if (item.Status == "Maintenance" || item.Status == "Repair" || item.Status == "Bảo trì") {
+                                        <span class="badge rounded-pill bg-warning-subtle text-warning px-3 py-2 border border-warning-subtle">
+                                            <i class="fa-solid fa-wrench me-1"></i> Bảo trì
+                                        </span>
+                                    } else if (item.Status == "Rented" || item.Status == "Đang thuê") {
+                                        <span class="badge rounded-pill bg-info-subtle text-info px-3 py-2 border border-info-subtle">
+                                            <i class="fa-solid fa-key me-1"></i> Đang thuê
+                                        </span>
+                                    } else {
+                                        <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2 border border-danger-subtle">
+                                            <i class="fa-solid fa-circle-xmark me-1"></i> Ngoại tuyến
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="btn-group shadow-sm border rounded">
+                                        <a asp-action="Tracking" asp-route-id="@item.Id" class="btn btn-sm btn-white text-info border-end" data-bs-toggle="tooltip" title="Theo dõi bản đồ">
+                                            <i class="fa-solid fa-map-location-dot"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-white text-primary border-end" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-white text-danger" data-bs-toggle="tooltip" title="Xóa xe">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .extra-small { font-size: 0.75rem; }
+    .btn-white { background: white; border: none; }
+    .btn-white:hover { background: #f8f9fa; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button { padding: 0.2rem 0.5rem; margin: 0 2px; }
+</style>
+
+@section Scripts {
+    <!-- DataTables JS & Tooltips -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTables
+            $('#vehiclesTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json'
+                },
+                columnDefs: [
+                    { orderable: false, targets: 4 } // Kkhông sắp xếp cột hành động
+                ],
+                order: [[0, 'asc']],
+                dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                     "<'row'<'col-sm-12'tr>>" +
+                     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            });
+
+            // Initialize Tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GPS Management</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DACS.styles.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Toastr.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+</head>
+<body>
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <div class="sidebar-heading">
+                <i class="fa-solid fa-satellite-dish me-2"></i> GPS SYSTEM
+            </div>
+            <nav class="sidebar-nav mt-3">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Vehicles" ? "active" : "")" asp-controller="Vehicles" asp-action="Index">
+                    <i class="fa-solid fa-car"></i> Quản lý Xe
+                </a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "History" ? "active" : "")" asp-controller="History" asp-action="Index">
+                    <i class="fa-solid fa-route"></i> Lịch sử Hành trình
+                </a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Devices" ? "active" : "")" asp-controller="Devices" asp-action="Index">
+                        <i class="fa-solid fa-microchip"></i> Quản lý Thiết bị
+                    </a>
+                }
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Alerts" ? "active" : "")" asp-controller="Alerts" asp-action="Index">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo
+                </a>
+            </nav>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <!-- Header -->
+            <header class="top-navbar d-flex align-items-center justify-content-between shadow-sm px-4">
+                <h5 class="mb-0 fw-bold text-dark">Hệ thống GPS Duy - HUTECH</h5>
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                            <i class="fa-solid fa-user small"></i>
+                        </div>
+                        <span class="d-none d-sm-inline fw-semibold">
+                            @(User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? User.Identity?.Name)
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-user-gear me-2 small text-muted"></i> Hồ sơ</a></li>
+                        <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-gear me-2 small text-muted"></i> Cài đặt</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-danger font-bold" asp-controller="Account" asp-action="Logout"><i class="fa-solid fa-right-from-bracket me-2 small"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main role="main" class="main-content">
+                @RenderBody()
+            </main>
+
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- Toastr.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- SignalR for Global Notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        const globalConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/dashboardHub")
+            .withAutomaticReconnect()
+            .build();
+
+        globalConnection.on("ReceiveNotification", (n) => {
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "timeOut": "7000"
+            };
+            if (n.type === "warning") toastr.warning(n.message, n.title);
+            else if (n.type === "danger") toastr.error(n.message, n.title);
+            else toastr.info(n.message, n.title);
+        });
+
+        globalConnection.start().catch(err => console.error(err.toString()));
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,228 @@
+@using DACS.Models
+@{
+    ViewData["Title"] = "Lịch sử hành trình";
+}
+
+<!-- External CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map { height: 600px; border-radius: 12px; z-index: 1; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); }
+    .playback-controls {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        margin-top: -100px;
+        position: relative;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+        display: none; /* Hiện khi có dữ liệu */
+        transition: all 0.3s ease;
+    }
+    .custom-end-icon { background: none; border: none; }
+    .stat-label { font-size: 0.75rem; letter-spacing: 0.5px; }
+</style>
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Lịch sử hành trình</h2>
+            <p class="text-muted small mb-0">Xem lại quãng đường và tốc độ của phương tiện theo thời gian</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Filter Card -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold small text-uppercase"><i class="fa-solid fa-filter me-2 text-primary"></i> Tra cứu hành trình</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Chọn phương tiện</label>
+                        <select id="vehicleSelect" class="form-select border-light-subtle shadow-xs">
+                            <option value="">-- Danh sách xe --</option>
+                            @foreach (var v in (List<Vehicle>)ViewBag.Vehicles)
+                            {
+                                <option value="@v.Id">@v.Name (@v.LicensePlate)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Từ thời điểm</label>
+                        <input type="datetime-local" id="startTime" class="form-control border-light-subtle" value="@DateTime.Now.AddDays(-1).ToString("yyyy-MM-ddTHH:mm")" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Đến thời điểm</label>
+                        <input type="datetime-local" id="endTime" class="form-control border-light-subtle" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                    </div>
+                    <button class="btn btn-primary w-100 py-2 shadow-sm rounded-2" onclick="loadHistory()">
+                        <i class="fa-solid fa-play me-2"></i> Tải dữ liệu
+                    </button>
+                    <div id="loading" class="text-center mt-3" style="display: none;">
+                        <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                        <span class="small text-muted ms-2">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map & Playback Card -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-body p-0 position-relative">
+                    <div id="map"></div>
+                    
+                    <!-- Playback Controls Container -->
+                    <div class="px-4">
+                        <div id="playback-section" class="playback-controls border border-primary-subtle mx-auto">
+                            <div class="row align-items-center">
+                                <div class="col-md-7">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <label class="small fw-bold text-muted text-uppercase"><i class="fa-solid fa-route me-1"></i> Playback</label>
+                                        <span id="pb-progress" class="extra-small text-primary fw-bold">0 / 0 điểm</span>
+                                    </div>
+                                    <input type="range" class="form-range custom-range" id="historyRange" min="0" value="0" step="1">
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="d-flex gap-2">
+                                        <div class="flex-fill p-2 bg-light rounded border text-center">
+                                            <div class="stat-label text-uppercase text-muted fw-bold mb-1">Thời gian</div>
+                                            <div id="pb-time" class="fw-bold small text-dark">--:--:--</div>
+                                        </div>
+                                        <div class="flex-fill p-2 bg-primary-subtle rounded border border-primary-subtle text-center">
+                                            <div class="stat-label text-uppercase text-primary fw-bold mb-1">Tốc độ</div>
+                                            <div id="pb-speed" class="text-primary fw-bold fs-5">0 <span class="small fw-normal">km/h</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .extra-small { font-size: 0.7rem; }
+    .btn-white { background: white; border: none; }
+</style>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. Khởi tạo bản đồ
+        var map = L.map('map').setView([10.762622, 106.660172], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        var historyData = [];
+        var pathPolyline = null;
+        var playbackMarker = null;
+        var startMarker = null;
+        var endMarker = null;
+
+        var carIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/744/744465.png',
+            iconSize: [36, 36], 
+            iconAnchor: [18, 18]
+        });
+
+        var startIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        function loadHistory() {
+            var vid = document.getElementById('vehicleSelect').value;
+            var start = document.getElementById('startTime').value;
+            var end = document.getElementById('endTime').value;
+
+            if (!vid) { alert("Vui lòng chọn xe!"); return; }
+
+            document.getElementById('loading').style.display = 'block';
+
+            // Xóa các lớp cũ
+            if (pathPolyline) map.removeLayer(pathPolyline);
+            if (playbackMarker) map.removeLayer(playbackMarker);
+            if (startMarker) map.removeLayer(startMarker);
+            if (endMarker) map.removeLayer(endMarker);
+
+            fetch(`/History/GetHistoryData?vehicleId=${vid}&startTime=${start}&endTime=${end}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    if (data.length === 0) {
+                        alert("Không tìm thấy dữ liệu GPS trong khoảng thời gian này.");
+                        document.getElementById('playback-section').style.display = 'none';
+                        return;
+                    }
+
+                    historyData = data;
+                    var coords = data.map(d => [d.latitude, d.longitude]);
+                    
+                    // 2. Vẽ đường đi (Line)
+                    pathPolyline = L.polyline(coords, { 
+                        color: '#3498db', 
+                        weight: 6, 
+                        opacity: 0.8,
+                        lineJoin: 'round'
+                    }).addTo(map);
+                    
+                    // 3. Đặt Marker Bắt đầu & Kết thúc
+                    startMarker = L.marker(coords[0], { icon: startIcon }).addTo(map).bindPopup("<b>Bắt đầu</b><br>" + new Date(data[0].timestamp).toLocaleString());
+                    
+                    endMarker = L.marker(coords[coords.length - 1], { 
+                        icon: L.divIcon({ 
+                            className: 'custom-end-icon', 
+                            html: '<div class="bg-danger text-white rounded-circle shadow d-flex align-items-center justify-content-center" style="width:30px; height:30px;"><i class="fa-solid fa-flag-checkered"></i></div>', 
+                            iconAnchor: [15, 15] 
+                        }) 
+                    }).addTo(map).bindPopup("<b>Kết thúc</b><br>" + new Date(data[data.length-1].timestamp).toLocaleString());
+
+                    // Thu phóng bản đồ bao trọn đường đi
+                    map.fitBounds(pathPolyline.getBounds(), { padding: [50, 50] });
+
+                    // 4. Thiết lập thanh trượt Playback
+                    var slider = document.getElementById('historyRange');
+                    slider.max = data.length - 1;
+                    slider.value = 0;
+                    document.getElementById('pb-progress').innerText = `1 / ${data.length} điểm`;
+                    document.getElementById('playback-section').style.display = 'block';
+
+                    // 5. Khởi tạo Marker ô tô di động
+                    playbackMarker = L.marker(coords[0], { icon: carIcon }).addTo(map);
+                    updatePlaybackInfo(0);
+                })
+                .catch(err => {
+                    document.getElementById('loading').style.display = 'none';
+                    console.error(err);
+                    alert("Có lỗi khi tải dữ liệu hành trình.");
+                });
+        }
+
+        // Sự kiện khi kéo thanh trượt
+        document.getElementById('historyRange').oninput = function() {
+            var index = parseInt(this.value);
+            var point = historyData[index];
+            if (playbackMarker && point) {
+                playbackMarker.setLatLng([point.latitude, point.longitude]);
+                document.getElementById('pb-progress').innerText = `${index + 1} / ${historyData.length} điểm`;
+                updatePlaybackInfo(index);
+            }
+        };
+
+        function updatePlaybackInfo(index) {
+            var point = historyData[index];
+            var date = new Date(point.timestamp);
+            document.getElementById('pb-time').innerText = date.toLocaleString('vi-VN');
+            document.getElementById('pb-speed').innerHTML = point.speed.toFixed(1) + ' <span class="small fw-normal">km/h</span>';
+        }
+    </script>
+}

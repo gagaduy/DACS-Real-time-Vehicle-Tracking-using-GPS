@@ -1,0 +1,67 @@
+@model DACS.Models.Vehicle
+
+@{
+    ViewData["Title"] = "Thêm xe mới";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Quản lý xe</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Thêm mới</li>
+              </ol>
+            </nav>
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Thông tin xe mới</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Name" class="form-label fw-semibold">Tên xe</label>
+                                <input asp-for="Name" class="form-control" placeholder="Toyota Vios 2023..." />
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LicensePlate" class="form-label fw-semibold">Biển số</label>
+                                <input asp-for="LicensePlate" class="form-control" placeholder="51H-123.45" />
+                                <span asp-validation-for="LicensePlate" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Model" class="form-label fw-semibold">Dòng xe</label>
+                                <input asp-for="Model" class="form-control" placeholder="Sedan" />
+                                <span asp-validation-for="Model" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Status" class="form-label fw-semibold">Trạng thái</label>
+                                <select asp-for="Status" class="form-select">
+                                    <option value="Available">Sẵn sàng</option>
+                                    <option value="Rented">Đang thuê</option>
+                                    <option value="Maintenance">Bảo trì</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-save me-1"></i> Lưu lại
+                            </button>
+                            <a asp-action="Index" class="btn btn-light px-4">Hủy</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

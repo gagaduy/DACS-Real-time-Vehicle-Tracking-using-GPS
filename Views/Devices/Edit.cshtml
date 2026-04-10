@@ -1,0 +1,82 @@
+@model DACS.Models.Device
+
+@{
+    ViewData["Title"] = "Chỉnh sửa thiết bị";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold text-dark">Chỉnh sửa thiết bị</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Danh sách thiết bị</a></li>
+                <li class="breadcrumb-item active">Chỉnh sửa</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-pen-to-square me-2 text-primary"></i> Cập nhật thông tin</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="VehicleId" />
+                        
+                        <div class="mb-3">
+                            <label asp-for="SerialNumber" class="form-label fw-bold small text-muted text-uppercase">Serial Number (S/N)</label>
+                            <input asp-for="SerialNumber" class="form-control" readonly />
+                            <div class="form-text extra-small">Không thể thay đổi S/N sau khi tạo.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Status" class="form-label fw-bold small text-muted text-uppercase">Trạng thái hiện tại</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="In Stock">Trong kho</option>
+                                <option value="Online">Trực tuyến (Tự động)</option>
+                                <option value="Repairing">Đang sửa chữa</option>
+                                <option value="Lost">Đã mất</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="fa-solid fa-check me-2"></i> Cập nhật
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                                Hủy bỏ
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-7">
+            <div class="card border-0 bg-info-subtle shadow-sm h-100 border-start border-4 border-info">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark"><i class="fa-solid fa-circle-info me-2 text-info"></i> Ghi chú hệ thống</h5>
+                    <ul class="text-muted small mt-3">
+                        <li class="mb-2"><strong>SerialNumber</strong> là duy nhất giúp bot simulator nhắm đúng thiết bị để gửi tọa độ.</li>
+                        <li class="mb-2">Trạng thái <strong>Online</strong> sẽ được tự động cập nhật bởi hệ thống khi nhận được dữ liệu GPS.</li>
+                        <li>Nếu bạn muốn gán thiết bị này cho xe khác, hãy sử dụng chức năng <strong>"Gán vào xe"</strong> tại trang danh sách.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .extra-small { font-size: 0.75rem; }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
