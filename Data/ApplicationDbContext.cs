@@ -19,6 +19,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<GPSHistory> GPSHistories { get; set; }
     public DbSet<Geofence> Geofences { get; set; }
     public DbSet<Alert> Alerts { get; set; }
+    public DbSet<UserSetting> UserSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,6 +60,12 @@ public class ApplicationDbContext : DbContext
             .HasOne(a => a.Vehicle)
             .WithMany(v => v.Alerts)
             .HasForeignKey(a => a.VehicleId);
+
+        // Account - UserSetting (One-to-One)
+        modelBuilder.Entity<Account>()
+            .HasOne(a => a.UserSetting)
+            .WithOne(u => u.Account)
+            .HasForeignKey<UserSetting>(u => u.AccountId);
             
         // Configure Spatial Data for SQL Server
         // Note: UseNetTopologySuite() is called in Program.cs during service registration.

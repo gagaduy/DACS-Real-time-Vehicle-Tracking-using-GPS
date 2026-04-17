@@ -4,6 +4,7 @@ using DACS.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 
@@ -12,9 +13,11 @@ using NetTopologySuite.Geometries;
 namespace DACS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260417100638_AddPasswordResetFields")]
+    partial class AddPasswordResetFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -264,31 +267,6 @@ namespace DACS.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("DACS.Models.UserSetting", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsNotificationEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<double>("SpeedLimitThreshold")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique();
-
-                    b.ToTable("UserSettings");
-                });
-
             modelBuilder.Entity("DACS.Models.Vehicle", b =>
                 {
                     b.Property<int>("Id")
@@ -389,22 +367,6 @@ namespace DACS.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Vehicle");
-                });
-
-            modelBuilder.Entity("DACS.Models.UserSetting", b =>
-                {
-                    b.HasOne("DACS.Models.Account", "Account")
-                        .WithOne("UserSetting")
-                        .HasForeignKey("DACS.Models.UserSetting", "AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("DACS.Models.Account", b =>
-                {
-                    b.Navigation("UserSetting");
                 });
 
             modelBuilder.Entity("DACS.Models.Customer", b =>

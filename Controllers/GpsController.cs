@@ -65,26 +65,33 @@ public class GpsController : ControllerBase
         }
 
         // 4. Overspeed Check
-        if (data.Speed > 80)
+        var settings = await _context.UserSettings.FirstOrDefaultAsync(); // Get first available settings for now
+        var speedThreshold = settings?.SpeedLimitThreshold ?? 80.0;
+        var notificationsEnabled = settings?.IsNotificationEnabled ?? true;
+
+        if (data.Speed > speedThreshold)
         {
             var alert = new Alert
             {
                 VehicleId = vehicle.Id,
                 Timestamp = DateTime.UtcNow,
-                Message = $"Xe {vehicle.LicensePlate} ({vehicle.Name}) chạy quá tốc độ: {data.Speed:F1} km/h",
+                Message = $"Xe {vehicle.LicensePlate} ({vehicle.Name}) chạy quá tốc độ: {data.Speed:F1} km/h (Vượt ngưỡng {speedThreshold} km/h)",
                 Type = "OverSpeed",
                 Location = location,
                 IsProcessed = false
             };
             _context.Alerts.Add(alert);
 
-            // Gửi SignalR Alert Notification cho tất cả các trang
-            await _hubContext.Clients.All.SendAsync("ReceiveNotification", new {
-                title = "Cảnh báo quá tốc độ!",
-                message = alert.Message,
-                type = "warning",
-                timestamp = alert.Timestamp.ToString("HH:mm:ss")
-            });
+            // Gửi SignalR Alert Notification nếu enabled
+            if (notificationsEnabled)
+            {
+                await _hubContext.Clients.All.SendAsync("ReceiveNotification", new {
+                    title = "Cảnh báo quá tốc độ!",
+                    message = alert.Message,
+                    type = "warning",
+                    timestamp = alert.Timestamp.ToString("HH:mm:ss")
+                });
+            }
         }
 
         await _context.SaveChangesAsync();

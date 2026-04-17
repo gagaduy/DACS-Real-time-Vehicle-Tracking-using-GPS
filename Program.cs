@@ -23,7 +23,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IGeofenceService, GeofenceService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddSignalR();
 
 var app = builder.Build();

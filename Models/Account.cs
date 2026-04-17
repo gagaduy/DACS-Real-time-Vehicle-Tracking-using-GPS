@@ -9,7 +9,12 @@ public class Account
     public string Email { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
+    
+    public string? PasswordResetToken { get; set; }
+    public DateTime? ResetTokenExpires { get; set; }
 
     public int RoleId { get; set; }
     public Role Role { get; set; } = null!;
+
+    public UserSetting? UserSetting { get; set; }
 }
