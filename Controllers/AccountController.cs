@@ -144,15 +144,45 @@ namespace DACS.Controllers
                     user.PhoneNumber = model.PhoneNumber;
                     user.Address = model.Address;
 
-                    if (!string.IsNullOrEmpty(model.NewPassword))
-                    {
-                        user.Password = model.NewPassword; // In real app, hash this!
-                    }
-
                     _context.Update(user);
                     await _context.SaveChangesAsync();
                     
                     TempData["SuccessMessage"] = "Cập nhật hồ sơ thành công!";
+                    return RedirectToAction("Profile");
+                }
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var username = User.Identity?.Name;
+                var user = await _context.Accounts.FirstOrDefaultAsync(u => u.Username == username);
+
+                if (user != null)
+                {
+                    // Verify current password
+                    if (user.Password != model.CurrentPassword)
+                    {
+                        ModelState.AddModelError("CurrentPassword", "Mật khẩu hiện tại không chính xác.");
+                        return View(model);
+                    }
+
+                    user.Password = model.NewPassword; // In real app, hash this!
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = "Đổi mật khẩu thành công!";
                     return RedirectToAction("Profile");
                 }
             }

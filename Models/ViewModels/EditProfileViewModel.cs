@@ -13,12 +13,5 @@ namespace DACS.Models.ViewModels
 
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
-
-        [DataType(DataType.Password)]
-        public string? NewPassword { get; set; }
-
-        [DataType(DataType.Password)]
-        [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
-        public string? ConfirmPassword { get; set; }
     }
 }
