@@ -80,10 +80,26 @@
                             <div class="row align-items-center">
                                 <div class="col-md-7">
                                     <div class="d-flex justify-content-between mb-2">
-                                        <label class="small fw-bold text-muted text-uppercase"><i class="fa-solid fa-route me-1"></i> Playback</label>
-                                        <span id="pb-progress" class="extra-small text-primary fw-bold">0 / 0 điểm</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <button id="btn-play" class="btn btn-primary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="togglePlayback()">
+                                                <i class="fa-solid fa-play"></i>
+                                            </button>
+                                            <button id="btn-stop" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="stopPlayback()">
+                                                <i class="fa-solid fa-stop"></i>
+                                            </button>
+                                            <label class="small fw-bold text-muted text-uppercase ms-1"><i class="fa-solid fa-route me-1"></i> Animation</label>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-light border btn-speed active" onclick="setSpeed(1, this)">1x</button>
+                                            <button type="button" class="btn btn-light border btn-speed" onclick="setSpeed(2, this)">2x</button>
+                                            <button type="button" class="btn btn-light border btn-speed" onclick="setSpeed(4, this)">4x</button>
+                                        </div>
                                     </div>
                                     <input type="range" class="form-range custom-range" id="historyRange" min="0" value="0" step="1">
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <span id="pb-progress" class="extra-small text-primary fw-bold">0 / 0 điểm</span>
+                                        <span id="pb-duration" class="extra-small text-muted">00:00:00</span>
+                                    </div>
                                 </div>
                                 <div class="col-md-5">
                                     <div class="d-flex gap-2">
@@ -108,7 +124,9 @@
 
 <style>
     .extra-small { font-size: 0.7rem; }
-    .btn-white { background: white; border: none; }
+    .btn-speed.active { background-color: #0d6efd; color: white; border-color: #0d6efd; }
+    .custom-range::-webkit-slider-runnable-track { background: #e9ecef; height: 6px; border-radius: 3px; }
+    .custom-range::-webkit-slider-thumb { margin-top: -5px; }
 </style>
 
 @section Scripts {
@@ -120,6 +138,10 @@
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
+        var isPlaying = false;
+        var playbackInterval = null;
+        var playbackSpeed = 1;
+        var currentIndex = 0;
         var historyData = [];
         var pathPolyline = null;
         var playbackMarker = null;
@@ -146,6 +168,7 @@
             if (!vid) { alert("Vui lòng chọn xe!"); return; }
 
             document.getElementById('loading').style.display = 'block';
+            stopPlayback();
 
             // Xóa các lớp cũ
             if (pathPolyline) map.removeLayer(pathPolyline);
@@ -193,8 +216,17 @@
                     var slider = document.getElementById('historyRange');
                     slider.max = data.length - 1;
                     slider.value = 0;
+                    currentIndex = 0;
                     document.getElementById('pb-progress').innerText = `1 / ${data.length} điểm`;
                     document.getElementById('playback-section').style.display = 'block';
+
+                    // 6. Tính toán tổng thời gian
+                    var startTime = new Date(data[0].timestamp);
+                    var endTime = new Date(data[data.length-1].timestamp);
+                    var durationMs = endTime - startTime;
+                    var hours = Math.floor(durationMs / 3600000);
+                    var mins = Math.floor((durationMs % 3600000) / 60000);
+                    document.getElementById('pb-duration').innerText = `Tổng: ${hours}h ${mins}m`;
 
                     // 5. Khởi tạo Marker ô tô di động
                     playbackMarker = L.marker(coords[0], { icon: carIcon }).addTo(map);
@@ -207,14 +239,81 @@
                 });
         }
 
-        // Sự kiện khi kéo thanh trượt
-        document.getElementById('historyRange').oninput = function() {
-            var index = parseInt(this.value);
+        // --- Logic Playback ---
+
+        function togglePlayback() {
+            var btn = document.getElementById('btn-play');
+            if (isPlaying) {
+                clearInterval(playbackInterval);
+                btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                isPlaying = false;
+            } else {
+                if (currentIndex >= historyData.length - 1) {
+                    currentIndex = 0; // Reset nếu đã đi đến cuối
+                }
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                isPlaying = true;
+                
+                playbackInterval = setInterval(() => {
+                    currentIndex++;
+                    if (currentIndex >= historyData.length) {
+                        stopPlayback();
+                        return;
+                    }
+                    updateMarkerPosition(currentIndex);
+                }, 500 / playbackSpeed); // Tốc độ cơ bản: 2 điểm / giây
+            }
+        }
+
+        function stopPlayback() {
+            clearInterval(playbackInterval);
+            isPlaying = false;
+            currentIndex = 0;
+            document.getElementById('btn-play').innerHTML = '<i class="fa-solid fa-play"></i>';
+            document.getElementById('historyRange').value = 0;
+            if (playbackMarker && historyData.length > 0) {
+                updateMarkerPosition(0);
+            }
+        }
+
+        function updateMarkerPosition(index) {
             var point = historyData[index];
             if (playbackMarker && point) {
                 playbackMarker.setLatLng([point.latitude, point.longitude]);
+                document.getElementById('historyRange').value = index;
                 document.getElementById('pb-progress').innerText = `${index + 1} / ${historyData.length} điểm`;
                 updatePlaybackInfo(index);
+                
+                // Tự động cuộn bản đồ theo xe (tùy chọn)
+                // map.panTo([point.latitude, point.longitude]);
+            }
+        }
+
+        function setSpeed(speed, btn) {
+            playbackSpeed = speed;
+            document.querySelectorAll('.btn-speed').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Nếu đang chạy, khởi động lại interval với tốc độ mới
+            if (isPlaying) {
+                clearInterval(playbackInterval);
+                playbackInterval = setInterval(() => {
+                    currentIndex++;
+                    if (currentIndex >= historyData.length) {
+                        stopPlayback();
+                        return;
+                    }
+                    updateMarkerPosition(currentIndex);
+                }, 500 / playbackSpeed);
+            }
+        }
+
+        // Sự kiện khi kéo thanh trượt manually
+        document.getElementById('historyRange').oninput = function() {
+            currentIndex = parseInt(this.value);
+            updateMarkerPosition(currentIndex);
+            if (isPlaying) {
+                // Tạm dừng khi người dùng tự kéo
             }
         };
 

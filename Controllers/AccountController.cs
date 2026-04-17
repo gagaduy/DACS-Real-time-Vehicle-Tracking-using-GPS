@@ -322,11 +322,19 @@ namespace DACS.Controllers
         [HttpPost]
         public async Task<IActionResult> ClearGpsHistory()
         {
-            // Xóa sạch bảng GPSHistories
             _context.GPSHistories.RemoveRange(_context.GPSHistories);
             await _context.SaveChangesAsync();
-
             TempData["SuccessMessage"] = "Đã xóa toàn bộ lịch sử GPS thành công.";
+            return RedirectToAction("Settings");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> ClearAlerts()
+        {
+            _context.Alerts.RemoveRange(_context.Alerts);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Đã xóa toàn bộ danh sách cảnh báo thành công.";
             return RedirectToAction("Settings");
         }
     }

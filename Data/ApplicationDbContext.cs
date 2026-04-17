@@ -38,10 +38,16 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey<Device>(d => d.VehicleId);
 
         // Device - GPSHistory relationship
-        modelBuilder.Entity<GPSHistory>()
-            .HasOne(g => g.Device)
-            .WithMany(d => d.GPSHistories)
-            .HasForeignKey(g => g.DeviceId);
+        modelBuilder.Entity<GPSHistory>(entity =>
+        {
+            entity.HasOne(g => g.Device)
+                .WithMany(d => d.GPSHistories)
+                .HasForeignKey(g => g.DeviceId);
+
+            // Thêm index để tối ưu truy vấn theo xe và thời gian
+            entity.HasIndex(g => g.Timestamp);
+            entity.HasIndex(g => new { g.DeviceId, g.Timestamp });
+        });
 
         // Vehicle - Alert relationship
         modelBuilder.Entity<Alert>()

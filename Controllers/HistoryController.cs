@@ -28,7 +28,13 @@ public class HistoryController : Controller
     [HttpGet]
     public async Task<IActionResult> GetHistoryData(int vehicleId, DateTime startTime, DateTime endTime)
     {
-        var history = await _context.GPSHistories
+        // Kiểm tra khoảng thời gian (tối đa 7 ngày để đảm bảo hiệu năng)
+        if ((endTime - startTime).TotalDays > 7)
+        {
+            return BadRequest(new { message = "Khoảng thời gian tra cứu không được quá 7 ngày." });
+        }
+
+        var rawHistory = await _context.GPSHistories
             .Where(g => g.Device.VehicleId == vehicleId && 
                         g.Timestamp >= startTime && 
                         g.Timestamp <= endTime)
@@ -42,6 +48,25 @@ public class HistoryController : Controller
             })
             .ToListAsync();
 
-        return Ok(history);
+        // Tối ưu hóa: Nếu quá nhiều điểm (ví dụ > 2000), thực hiện downsampling
+        const int maxPoints = 2000;
+        if (rawHistory.Count <= maxPoints)
+        {
+            return Ok(rawHistory);
+        }
+
+        var result = new List<object>();
+        int skipFactor = rawHistory.Count / maxPoints;
+        
+        for (int i = 0; i < rawHistory.Count; i++)
+        {
+            // Luôn lấy điểm đầu, điểm cuối và các điểm cách đều nhau
+            if (i == 0 || i == rawHistory.Count - 1 || i % skipFactor == 0)
+            {
+                result.Add(rawHistory[i]);
+            }
+        }
+
+        return Ok(result);
     }
 }
