@@ -30,10 +30,10 @@ public class HomeController : Controller
             OnlineVehicles = await _context.Vehicles.CountAsync(v => v.LastUpdated > fiveMinutesAgo),
             TotalCustomers = await _context.Customers.CountAsync(),
             PendingAlerts = await _context.Alerts.CountAsync(),
-            LatestRentals = await _context.Rentals
-                .Include(r => r.Vehicle)
-                .Include(r => r.Customer)
-                .OrderByDescending(r => r.StartDate)
+            LatestContracts = await _context.Contracts
+                .Include(c => c.Vehicle)
+                .Include(c => c.Customer)
+                .OrderByDescending(c => c.CreatedDate)
                 .Take(5)
                 .ToListAsync(),
             VehicleLocations = await _context.Vehicles

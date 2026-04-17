@@ -1,0 +1,117 @@
+@model IEnumerable<DACS.Models.Contract>
+
+@{
+    ViewData["Title"] = "Quản lý Hợp đồng";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">@ViewData["Title"]</h2>
+            <p class="text-muted small mb-0">Theo dõi hợp đồng thuê xe và thanh toán</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary shadow-sm rounded-pill px-4">
+            <i class="fa-solid fa-plus me-2"></i>Tạo hợp đồng mới
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase fw-bold">
+                        <tr>
+                            <th class="ps-4">Số HĐ / Ngày tạo</th>
+                            <th>Khách hàng</th>
+                            <th>Xe thuê</th>
+                            <th>Thời hạn</th>
+                            <th>Thanh toán</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">@item.ContractNumber</div>
+                                    <div class="text-muted small">@item.CreatedDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@item.Customer.Name</div>
+                                    <div class="text-muted small">@item.Customer.Phone</div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@item.Vehicle.Name</div>
+                                    <div class="text-primary small fw-bold">@item.Vehicle.LicensePlate</div>
+                                </td>
+                                <td>
+                                    <div class="small">@item.StartDate.ToString("dd/MM/yyyy") - @item.EndDate.ToString("dd/MM/yyyy")</div>
+                                    <div class="text-muted extra-small">(@((item.EndDate - item.StartDate).Days) ngày)</div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-success">@item.TotalAmount.ToString("N0") VNĐ</div>
+                                    <div class="text-muted small">Cọc: @item.Deposit.ToString("N0")</div>
+                                </td>
+                                <td>
+                                    @switch (item.Status)
+                                    {
+                                        case "Draft":
+                                            <span class="badge bg-warning-subtle text-warning px-2 py-1">Dự thảo</span>
+                                            break;
+                                        case "Active":
+                                            <span class="badge bg-success-subtle text-success px-2 py-1">Đang hiệu lực</span>
+                                            break;
+                                        case "Completed":
+                                            <span class="badge bg-info-subtle text-info px-2 py-1">Hoàn thành</span>
+                                            break;
+                                        case "Cancelled":
+                                            <span class="badge bg-danger-subtle text-danger px-2 py-1">Đã hủy</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group shadow-sm rounded-3 overflow-hidden">
+                                        @if (item.Status == "Draft")
+                                        {
+                                            <form asp-action="Activate" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-white btn-sm px-3 border-end" title="Kích hoạt">
+                                                    <i class="fa-solid fa-play text-primary"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-white btn-sm px-3 border-end" title="Chi tiết">
+                                            <i class="fa-solid fa-eye text-primary"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-white btn-sm px-3" title="Sửa">
+                                            <i class="fa-solid fa-pen-to-square text-success"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <div class="display-1 text-muted opacity-25 mb-3"><i class="fa-solid fa-file-contract"></i></div>
+                    <h5 class="text-muted">Chưa có hợp đồng nào</h5>
+                    <p class="text-muted small">Hãy nhấn vào nút "Tạo hợp đồng mới" để bắt đầu.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1); }
+    .bg-success-subtle { background-color: rgba(25, 135, 84, 0.1); }
+    .bg-info-subtle { background-color: rgba(13, 202, 240, 0.1); }
+    .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1); }
+    .btn-white { background-color: #fff; }
+    .btn-white:hover { background-color: #f8f9fa; }
+    .extra-small { font-size: 0.75rem; }
+</style>

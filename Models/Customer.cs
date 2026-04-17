@@ -13,5 +13,5 @@ public class Customer
     public DateTime? Birthday { get; set; }
     public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-    public ICollection<Rental> Rentals { get; set; } = new List<Rental>();
+    public ICollection<Contract> Contracts { get; set; } = new List<Contract>();
 }

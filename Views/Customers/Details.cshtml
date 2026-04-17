@@ -82,33 +82,40 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var rental in Model.Rentals.OrderByDescending(r => r.StartDate))
+                                @foreach (var contract in Model.Contracts.OrderByDescending(c => c.StartDate))
                                 {
                                     <tr>
                                         <td class="ps-4">
-                                            <div class="fw-bold text-dark">@rental.Vehicle.Name</div>
-                                            <div class="text-muted small text-primary fw-medium">@rental.Vehicle.LicensePlate</div>
+                                            <div class="fw-bold text-dark">@contract.Vehicle.Name</div>
+                                            <div class="text-muted small text-primary fw-medium">@contract.Vehicle.LicensePlate</div>
                                         </td>
                                         <td>
-                                            <div class="small">Từ: @rental.StartDate.ToString("dd/MM/yyyy")</div>
-                                            <div class="small text-muted">Đến: @rental.EndDate.ToString("dd/MM/yyyy")</div>
+                                            <div class="small">Từ: @contract.StartDate.ToString("dd/MM/yyyy")</div>
+                                            <div class="small text-muted">Đến: @contract.EndDate.ToString("dd/MM/yyyy")</div>
                                         </td>
                                         <td>
-                                            @if (rental.Status == "Active")
+                                            @switch (contract.Status)
                                             {
-                                                <span class="badge bg-success-subtle text-success px-2 py-1">Đang thuê</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Đã trả</span>
+                                                case "Draft":
+                                                    <span class="badge bg-warning-subtle text-warning px-2 py-1">Dự thảo</span>
+                                                    break;
+                                                case "Active":
+                                                    <span class="badge bg-success-subtle text-success px-2 py-1">Đang thuê</span>
+                                                    break;
+                                                case "Completed":
+                                                    <span class="badge bg-info-subtle text-info px-2 py-1">Đã trả</span>
+                                                    break;
+                                                case "Cancelled":
+                                                    <span class="badge bg-danger-subtle text-danger px-2 py-1">Đã hủy</span>
+                                                    break;
                                             }
                                         </td>
                                         <td class="text-end pe-4">
-                                            <a href="#" class="btn btn-light btn-sm"><i class="fa-solid fa-file-contract"></i> Xem HĐ</a>
+                                            <a asp-controller="Contracts" asp-action="Details" asp-route-id="@contract.Id" class="btn btn-light btn-sm"><i class="fa-solid fa-file-contract"></i> Xem HĐ</a>
                                         </td>
                                     </tr>
                                 }
-                                @if (!Model.Rentals.Any())
+                                @if (!Model.Contracts.Any())
                                 {
                                     <tr>
                                         <td colspan="4" class="text-center py-5">

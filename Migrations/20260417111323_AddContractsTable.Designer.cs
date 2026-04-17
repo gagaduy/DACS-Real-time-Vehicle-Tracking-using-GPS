@@ -4,6 +4,7 @@ using DACS.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 
@@ -12,9 +13,11 @@ using NetTopologySuite.Geometries;
 namespace DACS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260417111323_AddContractsTable")]
+    partial class AddContractsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -280,6 +283,39 @@ namespace DACS.Migrations
                     b.ToTable("Geofences");
                 });
 
+            modelBuilder.Entity("DACS.Models.Rental", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("Rentals");
+                });
+
             modelBuilder.Entity("DACS.Models.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -388,13 +424,13 @@ namespace DACS.Migrations
             modelBuilder.Entity("DACS.Models.Contract", b =>
                 {
                     b.HasOne("DACS.Models.Customer", "Customer")
-                        .WithMany("Contracts")
+                        .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DACS.Models.Vehicle", "Vehicle")
-                        .WithMany("Contracts")
+                        .WithMany()
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -424,6 +460,25 @@ namespace DACS.Migrations
                     b.Navigation("Device");
                 });
 
+            modelBuilder.Entity("DACS.Models.Rental", b =>
+                {
+                    b.HasOne("DACS.Models.Customer", "Customer")
+                        .WithMany("Rentals")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DACS.Models.Vehicle", "Vehicle")
+                        .WithMany("Rentals")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Vehicle");
+                });
+
             modelBuilder.Entity("DACS.Models.UserSetting", b =>
                 {
                     b.HasOne("DACS.Models.Account", "Account")
@@ -442,7 +497,7 @@ namespace DACS.Migrations
 
             modelBuilder.Entity("DACS.Models.Customer", b =>
                 {
-                    b.Navigation("Contracts");
+                    b.Navigation("Rentals");
                 });
 
             modelBuilder.Entity("DACS.Models.Device", b =>
@@ -459,9 +514,9 @@ namespace DACS.Migrations
                 {
                     b.Navigation("Alerts");
 
-                    b.Navigation("Contracts");
-
                     b.Navigation("Device");
+
+                    b.Navigation("Rentals");
                 });
 #pragma warning restore 612, 618
         }

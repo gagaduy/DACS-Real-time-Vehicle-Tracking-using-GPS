@@ -15,6 +15,6 @@ public class Vehicle
     public double? LastLongitude { get; set; }
     public DateTime? LastUpdated { get; set; }
 
-    public ICollection<Rental> Rentals { get; set; } = new List<Rental>();
+    public ICollection<Contract> Contracts { get; set; } = new List<Contract>();
     public ICollection<Alert> Alerts { get; set; } = new List<Alert>();
 }

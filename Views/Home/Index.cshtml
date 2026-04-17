@@ -89,34 +89,34 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-history me-2 text-success"></i> Chuyến thuê mới nhất</h5>
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-file-signature me-2 text-success"></i> Hợp đồng mới nhất</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        @foreach (var rental in Model.LatestRentals)
+                        @foreach (var contract in Model.LatestContracts)
                         {
-                            <a href="#" class="list-group-item list-group-item-action py-3">
+                            <a asp-controller="Contracts" asp-action="Details" asp-route-id="@contract.Id" class="list-group-item list-group-item-action py-3">
                                 <div class="d-flex w-100 justify-content-between align-items-center">
-                                    <h6 class="mb-1 fw-bold text-dark">@rental.Vehicle?.Name</h6>
-                                    <small class="text-primary fw-semibold">@rental.StartDate.ToString("HH:mm dd/MM")</small>
+                                    <h6 class="mb-1 fw-bold text-dark">@contract.Vehicle?.Name</h6>
+                                    <small class="text-primary fw-semibold">@contract.CreatedDate.ToString("HH:mm dd/MM")</small>
                                 </div>
                                 <div class="d-flex align-items-center mt-1">
-                                    <div class="badge bg-light text-dark border me-2 small">@rental.Vehicle?.LicensePlate</div>
-                                    <div class="small text-muted"><i class="fa-solid fa-user-tag me-1 text-secondary"></i> @rental.Customer?.Name</div>
+                                    <div class="badge bg-light text-dark border me-2 small">@contract.Vehicle?.LicensePlate</div>
+                                    <div class="small text-muted"><i class="fa-solid fa-user-tag me-1 text-secondary"></i> @contract.Customer?.Name</div>
                                 </div>
                             </a>
                         }
-                        @if (!Model.LatestRentals.Any())
+                        @if (!Model.LatestContracts.Any())
                         {
                             <div class="text-center py-5">
                                 <i class="fa-solid fa-folder-open text-light mb-2" style="font-size: 3rem;"></i>
-                                <p class="text-muted small">Không có dữ liệu chuyến xe gần đây</p>
+                                <p class="text-muted small">Không có dữ liệu hợp đồng gần đây</p>
                             </div>
                         }
                     </div>
                 </div>
                 <div class="card-footer bg-white border-top-0 py-3 text-center">
-                    <button class="btn btn-sm btn-link text-decoration-none fw-bold">Xem tất cả lịch sử thuê <i class="fa-solid fa-arrow-right ms-1"></i></button>
+                    <a asp-controller="Contracts" asp-action="Index" class="btn btn-sm btn-link text-decoration-none fw-bold">Xem tất cả hợp đồng <i class="fa-solid fa-arrow-right ms-1"></i></a>
                 </div>
             </div>
         </div>

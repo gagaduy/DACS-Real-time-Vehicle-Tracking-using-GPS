@@ -31,7 +31,7 @@ public class CustomersController : Controller
         }
 
         var customer = await _context.Customers
-            .Include(c => c.Rentals)
+            .Include(c => c.Contracts)
             .ThenInclude(r => r.Vehicle)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (customer == null)

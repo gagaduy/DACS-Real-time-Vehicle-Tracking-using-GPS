@@ -15,11 +15,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<Device> Devices { get; set; }
     public DbSet<Customer> Customers { get; set; }
-    public DbSet<Rental> Rentals { get; set; }
     public DbSet<GPSHistory> GPSHistories { get; set; }
     public DbSet<Geofence> Geofences { get; set; }
     public DbSet<Alert> Alerts { get; set; }
     public DbSet<UserSetting> UserSettings { get; set; }
+    public DbSet<Contract> Contracts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,18 +36,6 @@ public class ApplicationDbContext : DbContext
             .HasOne(v => v.Device)
             .WithOne(d => d.Vehicle)
             .HasForeignKey<Device>(d => d.VehicleId);
-
-        // Customer - Rental relationship
-        modelBuilder.Entity<Rental>()
-            .HasOne(r => r.Customer)
-            .WithMany(c => c.Rentals)
-            .HasForeignKey(r => r.CustomerId);
-
-        // Vehicle - Rental relationship
-        modelBuilder.Entity<Rental>()
-            .HasOne(r => r.Vehicle)
-            .WithMany(v => v.Rentals)
-            .HasForeignKey(r => r.VehicleId);
 
         // Device - GPSHistory relationship
         modelBuilder.Entity<GPSHistory>()

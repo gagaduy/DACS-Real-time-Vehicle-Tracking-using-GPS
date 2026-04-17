@@ -9,7 +9,7 @@ namespace DACS.Models.ViewModels
         public int OnlineVehicles { get; set; }
         public int TotalCustomers { get; set; }
         public int PendingAlerts { get; set; }
-        public List<Rental> LatestRentals { get; set; } = new List<Rental>();
+        public List<Contract> LatestContracts { get; set; } = new List<Contract>();
         public List<VehicleLocationDto> VehicleLocations { get; set; } = new List<VehicleLocationDto>();
     }
 

@@ -1,0 +1,150 @@
+@model DACS.Models.ViewModels.ContractViewModel
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Hợp đồng";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Hợp đồng</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold text-dark">@ViewData["Title"]: @Model.ContractNumber</h2>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="Edit">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="ContractNumber" />
+                        
+                        <div class="row g-4">
+                            <!-- Thông tin hợp đồng -->
+                            <div class="col-12">
+                                <h5 class="fw-bold border-bottom pb-2 mb-3 mt-2"><i class="fa-solid fa-file-invoice me-2 text-primary"></i>Thông tin cơ bản & Trạng thái</h5>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label asp-for="Status" class="form-label fw-semibold">Trạng thái hiện tại</label>
+                                <select asp-for="Status" class="form-select fw-bold @(Model.Status == "Active" ? "text-success" : "")">
+                                    <option value="Draft">Dự thảo</option>
+                                    <option value="Active">Đang hiệu lực (Giao xe)</option>
+                                    <option value="Completed">Hoàn thành (Trả xe)</option>
+                                    <option value="Cancelled">Đã hủy</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="CustomerId" class="form-label fw-semibold"></label>
+                                <select asp-for="CustomerId" class="form-select" asp-items="ViewBag.CustomerList"></select>
+                                <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="VehicleId" class="form-label fw-semibold"></label>
+                                <select asp-for="VehicleId" class="form-select" asp-items="ViewBag.VehicleList"></select>
+                                <span asp-validation-for="VehicleId" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Thời hạn và Giá cả -->
+                            <div class="col-12">
+                                <h5 class="fw-bold border-bottom pb-2 mb-3 mt-4"><i class="fa-solid fa-clock me-2 text-success"></i>Thời hạn & Giá cả</h5>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="StartDate" class="form-label fw-semibold"></label>
+                                <input asp-for="StartDate" class="form-control" type="date" id="startDate" />
+                                <span asp-validation-for="StartDate" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="EndDate" class="form-label fw-semibold"></label>
+                                <input asp-for="EndDate" class="form-control" type="date" id="endDate" />
+                                <span asp-validation-for="EndDate" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="RentalPrice" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <input asp-for="RentalPrice" class="form-control text-end" id="rentalPrice" />
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="RentalPrice" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Deposit" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <input asp-for="Deposit" class="form-control text-end" />
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="Deposit" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="alert alert-info border-0 shadow-sm d-flex align-items-center">
+                                    <i class="fa-solid fa-calculator fs-4 me-3"></i>
+                                    <div>
+                                        <div class="fw-bold">Tổng tiền dự kiến (Cập nhật): <span id="totalAmount">0</span> VNĐ</div>
+                                        <div class="small">Tự động tính toán lại khi thay đổi ngày hoặc giá thuê.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Điều khoản -->
+                            <div class="col-12">
+                                <h5 class="fw-bold border-bottom pb-2 mb-3 mt-4"><i class="fa-solid fa-list-check me-2 text-info"></i>Điều khoản bổ sung</h5>
+                            </div>
+                            <div class="col-12">
+                                <textarea asp-for="TermsAndConditions" class="form-control" rows="4"></textarea>
+                                <span asp-validation-for="TermsAndConditions" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12 mt-5">
+                                <div class="d-flex justify-content-end gap-3">
+                                    <a asp-action="Index" class="btn btn-light px-4 py-2 rounded-3 fw-semibold">Hủy</a>
+                                    <button type="submit" class="btn btn-success px-5 py-2 rounded-3 fw-semibold shadow-sm">
+                                        <i class="fa-solid fa-save me-2"></i>Cập nhật hợp đồng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            function calculateTotal() {
+                var start = new Date($('#startDate').val());
+                var end = new Date($('#endDate').val());
+                var price = parseFloat($('#rentalPrice').val()) || 0;
+                
+                if (start && end && end > start) {
+                    var diffTime = Math.abs(end - start);
+                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    if (diffDays <= 0) diffDays = 1;
+                    
+                    var total = diffDays * price;
+                    $('#totalAmount').text(total.toLocaleString('vi-VN'));
+                } else {
+                    $('#totalAmount').text('0');
+                }
+            }
+
+            $('#startDate, #endDate, #rentalPrice').on('change input', calculateTotal);
+            calculateTotal();
+        });
+    </script>
+}
