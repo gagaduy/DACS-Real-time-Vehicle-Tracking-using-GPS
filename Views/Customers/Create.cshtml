@@ -1,0 +1,117 @@
+@model DACS.Models.Customer
+
+@{
+    ViewData["Title"] = "Thêm Khách hàng mới";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Khách hàng</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold text-dark">@ViewData["Title"]</h2>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+                        
+                        <div class="row g-4">
+                            <!-- Thông tin cơ bản -->
+                            <div class="col-12">
+                                <h5 class="fw-bold border-bottom pb-2 mb-3 mt-2">Thông tin cơ bản</h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label asp-for="Name" class="form-label fw-semibold">Họ và Tên</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-user text-muted"></i></span>
+                                    <input asp-for="Name" class="form-control border-start-0 ps-0" placeholder="Nguyễn Văn A" required />
+                                </div>
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Birthday" class="form-label fw-semibold">Ngày sinh</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-calendar text-muted"></i></span>
+                                    <input asp-for="Birthday" class="form-control border-start-0 ps-0" type="date" />
+                                </div>
+                                <span asp-validation-for="Birthday" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Phone" class="form-label fw-semibold">Số điện thoại</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-phone text-muted"></i></span>
+                                    <input asp-for="Phone" class="form-control border-start-0 ps-0" placeholder="090..." required />
+                                </div>
+                                <span asp-validation-for="Phone" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label fw-semibold">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-envelope text-muted"></i></span>
+                                    <input asp-for="Email" class="form-control border-start-0 ps-0" type="email" placeholder="example@gmail.com" />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label fw-semibold">Địa chỉ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-location-dot text-muted"></i></span>
+                                    <input asp-for="Address" class="form-control border-start-0 ps-0" placeholder="Số nhà, tên đường, phường/xã..." />
+                                </div>
+                                <span asp-validation-for="Address" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Thông tin định danh -->
+                            <div class="col-12">
+                                <h5 class="fw-bold border-bottom pb-2 mb-3 mt-4">Thông tin định danh</h5>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="CitizenID" class="form-label fw-semibold">Số CCCD</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-id-card text-muted"></i></span>
+                                    <input asp-for="CitizenID" class="form-control border-start-0 ps-0" placeholder="Số căn cước công dân" />
+                                </div>
+                                <span asp-validation-for="CitizenID" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="DriverLicense" class="form-label fw-semibold">Số bằng lái xe</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-address-card text-muted"></i></span>
+                                    <input asp-for="DriverLicense" class="form-control border-start-0 ps-0" placeholder="Số giấy phép lái xe" />
+                                </div>
+                                <span asp-validation-for="DriverLicense" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12 mt-5">
+                                <div class="d-flex justify-content-end gap-3">
+                                    <a asp-action="Index" class="btn btn-light px-4 py-2 rounded-3 fw-semibold">Hủy</a>
+                                    <button type="submit" class="btn btn-primary px-5 py-2 rounded-3 fw-semibold shadow-sm">
+                                        <i class="fa-solid fa-save me-2"></i>Lưu khách hàng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

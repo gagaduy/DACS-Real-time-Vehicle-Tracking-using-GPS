@@ -1,0 +1,95 @@
+@model IEnumerable<DACS.Models.Customer>
+
+@{
+    ViewData["Title"] = "Danh sách Khách hàng";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">@ViewData["Title"]</h2>
+            <p class="text-muted small mb-0">Quản lý thông tin khách hàng thuê xe</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary shadow-sm rounded-pill px-4">
+            <i class="fa-solid fa-plus me-2"></i>Thêm khách hàng mới
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase fw-bold">
+                        <tr>
+                            <th class="ps-4">Họ và Tên</th>
+                            <th>Liên hệ</th>
+                            <th>Định danh (CCCD)</th>
+                            <th>Bằng lái xe</th>
+                            <th class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                            <span class="text-primary fw-bold small">@(item.Name.Substring(0, 1).ToUpper())</span>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">@item.Name</div>
+                                            <div class="text-muted small">@item.Address</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="text-dark small"><i class="fa-solid fa-phone me-2 text-muted"></i>@item.Phone</div>
+                                    <div class="text-muted extra-small"><i class="fa-solid fa-envelope me-2"></i>@item.Email</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border fw-medium px-2 py-1">
+                                        <i class="fa-solid fa-id-card me-1 text-muted"></i> @(item.CitizenID ?? "N/A")
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border fw-medium px-2 py-1">
+                                        <i class="fa-solid fa-address-card me-1 text-muted"></i> @(item.DriverLicense ?? "N/A")
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group shadow-sm rounded-3 overflow-hidden">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-white btn-sm px-3 border-end" title="Chi tiết">
+                                            <i class="fa-solid fa-eye text-primary"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-white btn-sm px-3 border-end" title="Sửa">
+                                            <i class="fa-solid fa-pen-to-square text-success"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-white btn-sm px-3" title="Xóa">
+                                            <i class="fa-solid fa-trash text-danger"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <div class="display-1 text-muted opacity-25 mb-3"><i class="fa-solid fa-users-slash"></i></div>
+                    <h5 class="text-muted">Chưa có khách hàng nào</h5>
+                    <p class="text-muted small">Hãy nhấn vào nút "Thêm khách hàng mới" để bắt đầu.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1); }
+    .extra-small { font-size: 0.75rem; }
+    .btn-white { background-color: #fff; }
+    .btn-white:hover { background-color: #f8f9fa; }
+</style>
