@@ -1,0 +1,79 @@
+@model DACS.Models.ViewModels.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Hồ sơ người dùng";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0"><i class="fa-solid fa-user-circle me-2"></i>Hồ sơ người dùng</h2>
+                </div>
+                <div class="card-body p-5">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="row mb-4 bg-light p-3 rounded shadow-sm">
+                        <div class="col-sm-4 text-muted fw-bold">Tên đăng nhập:</div>
+                        <div class="col-sm-8 text-dark fs-5">@Model.Username</div>
+                    </div>
+
+                    <div class="row mb-4 p-3 border-bottom">
+                        <div class="col-sm-4 text-muted fw-bold">Họ và tên:</div>
+                        <div class="col-sm-8 text-dark fs-5">@Model.FullName</div>
+                    </div>
+
+                    <div class="row mb-4 p-3 border-bottom">
+                        <div class="col-sm-4 text-muted fw-bold">Email:</div>
+                        <div class="col-sm-8 text-dark fs-5">@Model.Email</div>
+                    </div>
+
+                    <div class="row mb-4 p-3 border-bottom">
+                        <div class="col-sm-4 text-muted fw-bold">Số điện thoại:</div>
+                        <div class="col-sm-8 text-dark fs-5">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Chưa cập nhật" : Model.PhoneNumber)</div>
+                    </div>
+
+                    <div class="row mb-4 p-3 border-bottom">
+                        <div class="col-sm-4 text-muted fw-bold">Địa chỉ:</div>
+                        <div class="col-sm-8 text-dark fs-5">@(string.IsNullOrEmpty(Model.Address) ? "Chưa cập nhật" : Model.Address)</div>
+                    </div>
+
+                    <div class="row mb-4 p-3">
+                        <div class="col-sm-4 text-muted fw-bold">Vai trò:</div>
+                        <div class="col-sm-8">
+                            <span class="badge bg-info text-dark px-3 py-2 fs-6">@Model.RoleName</span>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-5">
+                        <a asp-action="EditProfile" class="btn btn-primary btn-lg px-5 shadow">
+                            <i class="fa-solid fa-user-pen me-2"></i>Chỉnh sửa hồ sơ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .card {
+        transition: transform 0.3s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .fw-bold {
+        letter-spacing: 0.5px;
+    }
+</style>
